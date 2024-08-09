@@ -1,4 +1,3 @@
-// START: intro
 package log
 
 import (
@@ -40,8 +39,6 @@ func NewDistributedLog(dataDir string, config Config) (
 	}
 	return l, nil
 }
-
-// END: intro
 
 // START: setup_log
 func (l *DistributedLog) setupLog(dataDir string) error {
@@ -262,6 +259,23 @@ func (l *DistributedLog) Close() error {
 }
 
 // END: log_close
+
+// START: start_get_servers
+func (l *DistributedLog) GetServers() ([]*api.Server, error) {
+	future := l.raft.GetConfiguration()
+	if err := future.Error(); err != nil {
+		return nil, err
+	}
+	var servers []*api.Server
+	for _, server := range future.Configuration().Servers {
+		servers = append(servers, &api.Server{
+			Id:       string(server.ID),
+			RpcAddr:  string(server.Address),
+			IsLeader: l.raft.Leader() == server.Address,
+		})
+	}
+	return servers, nil
+}
 
 // START: fsm_intro
 var _ raft.FSM = (*fsm)(nil)
