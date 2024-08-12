@@ -53,14 +53,15 @@ func TestResolver(t *testing.T) {
 		DialCreds: clientCreds,
 	}
 	r := &loadbalance.Resolver{}
-	addr := l.Addr().String()
-	u := &url.URL{
-		Scheme: "dns", // or whatever scheme you're using
-		Host:   addr,
+	host, port, err := net.SplitHostPort(l.Addr().String())
+	if err != nil {
+		// return nil, err
 	}
 	_, err = r.Build(
 		resolver.Target{
-			URL: *u,
+			URL: url.URL{
+				Host: host,
+				Path: net.JoinHostPort(host, port)}, //l.Addr().String()
 		},
 		conn,
 		opts,

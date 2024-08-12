@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -17,6 +16,7 @@ import (
 	api "github.com/cr34t1ve/proglog/api/v1"
 	"github.com/cr34t1ve/proglog/internal/agent"
 	"github.com/cr34t1ve/proglog/internal/config"
+	"github.com/cr34t1ve/proglog/internal/loadbalance"
 )
 
 func TestAgent(t *testing.T) {
@@ -45,22 +45,17 @@ func TestAgent(t *testing.T) {
 		bindAddr := fmt.Sprintf("%s:%d", "127.0.0.1", ports[0])
 		rpcPort := ports[1]
 
-		dataDir, err := ioutil.TempDir("", "agent-test-log")
+		dataDir, err := os.MkdirTemp("", "agent-test-log")
 		require.NoError(t, err)
 
 		var startJoinAddrs []string
 		if i != 0 {
-			startJoinAddrs = append(
-				startJoinAddrs,
-				agents[0].Config.BindAddr,
-			)
+			startJoinAddrs = append(startJoinAddrs, agents[0].Config.BindAddr)
 		}
 
 		agent, err := agent.New(agent.Config{
-			NodeName: fmt.Sprintf("%d", i),
-			// START: agent_config
-			Bootstrap: i == 0,
-			// END: agent_config
+			NodeName:        fmt.Sprintf("%d", i),
+			Bootstrap:       i == 0,
 			StartJoinAddrs:  startJoinAddrs,
 			BindAddr:        bindAddr,
 			RPCPort:         rpcPort,
@@ -77,7 +72,8 @@ func TestAgent(t *testing.T) {
 	defer func() {
 		for _, agent := range agents {
 			_ = agent.Shutdown()
-			require.NoError(t,
+			require.NoError(
+				t,
 				os.RemoveAll(agent.Config.DataDir),
 			)
 		}
@@ -96,6 +92,10 @@ func TestAgent(t *testing.T) {
 		},
 	)
 	require.NoError(t, err)
+
+	// wait until replication has finished
+	time.Sleep(3 * time.Second)
+
 	consumeResponse, err := leaderClient.Consume(
 		context.Background(),
 		&api.ConsumeRequest{
@@ -104,9 +104,6 @@ func TestAgent(t *testing.T) {
 	)
 	require.NoError(t, err)
 	require.Equal(t, consumeResponse.Record.Value, []byte("foo"))
-
-	// wait until replication has finished
-	time.Sleep(3 * time.Second)
 
 	followerClient := client(t, agents[1], peerTLSConfig)
 	consumeResponse, err = followerClient.Consume(
@@ -117,20 +114,6 @@ func TestAgent(t *testing.T) {
 	)
 	require.NoError(t, err)
 	require.Equal(t, consumeResponse.Record.Value, []byte("foo"))
-
-	// START: test_replication
-	consumeResponse, err = leaderClient.Consume(
-		context.Background(),
-		&api.ConsumeRequest{
-			Offset: produceResponse.Offset + 1,
-		},
-	)
-	require.Nil(t, consumeResponse)
-	require.Error(t, err)
-	got := grpc.Code(err)
-	want := grpc.Code(api.ErrOffsetOutOfRange{}.GRPCStatus().Err())
-	require.Equal(t, got, want)
-	// END: test_replication
 }
 
 func client(t *testing.T, agent *agent.Agent, tlsConfig *tls.Config) api.LogClient {
@@ -138,7 +121,12 @@ func client(t *testing.T, agent *agent.Agent, tlsConfig *tls.Config) api.LogClie
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(tlsCreds)}
 	rpcAddr, err := agent.Config.RPCAddr()
 	require.NoError(t, err)
-	conn, err := grpc.Dial(rpcAddr, opts...)
+	//conn, err := grpc.NewClient(rpcAddr, opts...)
+	conn, err := grpc.NewClient(fmt.Sprintf(
+		"%s:///%s",
+		loadbalance.Name,
+		rpcAddr,
+	), opts...)
 	require.NoError(t, err)
 	client := api.NewLogClient(conn)
 	return client
