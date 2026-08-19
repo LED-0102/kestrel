@@ -7,8 +7,8 @@ import (
 	"path"
 	"syscall"
 
-	"github.com/cr34t1ve/proglog/internal/agent"
-	"github.com/cr34t1ve/proglog/internal/config"
+	"github.com/LED-0102/kestrel/internal/agent"
+	"github.com/LED-0102/kestrel/internal/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -17,7 +17,7 @@ func main() {
 	cli := &cli{}
 
 	cmd := &cobra.Command{
-		Use:     "proglog",
+		Use:     "kestrel",
 		PreRunE: cli.setupConfig,
 		RunE:    cli.run,
 	}
@@ -49,7 +49,7 @@ func setupFlags(cmd *cobra.Command) error {
 
 	cmd.Flags().String("config-file", "", "Path to config file")
 
-	dataDir := path.Join(os.TempDir(), "proglog")
+	dataDir := path.Join(os.TempDir(), "kestrel")
 	cmd.Flags().String("data-dir",
 		dataDir,
 		"Directory to store log and Raft data.")

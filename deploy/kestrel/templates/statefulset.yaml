@@ -1,44 +1,44 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "proglog.fullname" . }}
+  name: {{ include "kestrel.fullname" . }}
   namespace: {{ .Release.Namespace }}
-  labels: {{ include "proglog.labels" . | nindent 4 }}
+  labels: {{ include "kestrel.labels" . | nindent 4 }}
 spec:
   selector:
-    matchLabels: {{ include "proglog.selectorLabels" . | nindent 6 }}
-  serviceName: {{ include "proglog.fullname" . }}
+    matchLabels: {{ include "kestrel.selectorLabels" . | nindent 6 }}
+  serviceName: {{ include "kestrel.fullname" . }}
   replicas: {{ .Values.replicas }}
   template:
     metadata:
-      name: {{ include "proglog.fullname" . }}
-      labels: {{ include "proglog.labels" . | nindent 8 }}
+      name: {{ include "kestrel.fullname" . }}
+      labels: {{ include "kestrel.labels" . | nindent 8 }}
     spec:
       # initContainers...
       initContainers:
-      - name: {{ include "proglog.fullname" . }}-config-init
+      - name: {{ include "kestrel.fullname" . }}-config-init
         image: busybox
         imagePullPolicy: IfNotPresent
         command:          
           - /bin/sh
           - -c
           - |-
-            rm -r /var/run/proglog/data
-            mkdir -p /var/run/proglog/data
+            rm -r /var/run/kestrel/data
+            mkdir -p /var/run/kestrel/data
             ID=$(echo $HOSTNAME | rev | cut -d- -f1 | rev)
-            cat > /var/run/proglog/config.yaml <<EOD
-            data-dir: /var/run/proglog/data
+            cat > /var/run/kestrel/config.yaml <<EOD
+            data-dir: /var/run/kestrel/data
             rpc-port: {{.Values.rpcPort}}
-            bind-addr: "$HOSTNAME.proglog.{{.Release.Namespace}}.svc.cluster.local:{{.Values.serfPort}}"
-            $([ $ID != 0 ] && echo 'start-join-addrs: "proglog-0.proglog.{{.Release.Namespace}}.svc.cluster.local:{{.Values.serfPort}}"')
+            bind-addr: "$HOSTNAME.kestrel.{{.Release.Namespace}}.svc.cluster.local:{{.Values.serfPort}}"
+            $([ $ID != 0 ] && echo 'start-join-addrs: "kestrel-0.kestrel.{{.Release.Namespace}}.svc.cluster.local:{{.Values.serfPort}}"')
             bootstrap: $([ $ID = 0 ] && echo true || echo false)
             EOD
         volumeMounts:
         - name: datadir
-          mountPath: /var/run/proglog
+          mountPath: /var/run/kestrel
       # containers...
       containers:
-      - name: {{ include "proglog.fullname" . }}
+      - name: {{ include "kestrel.fullname" . }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         ports:
         - containerPort: {{ .Values.rpcPort }}
@@ -46,7 +46,7 @@ spec:
         - containerPort: {{ .Values.serfPort }}
           name: serf
         args:
-          - --config-file=/var/run/proglog/config.yaml
+          - --config-file=/var/run/kestrel/config.yaml
         # probes...
         #readinessProbe:
         #  exec:
@@ -63,7 +63,7 @@ spec:
             - /bin/sh
             - -c
             - |-
-              /bin/grpc_health_probe -addr=$HOSTNAME.proglog.{{.Release.Namespace}}.svc.cluster.local:{{.Values.rpcPort}}
+              /bin/grpc_health_probe -addr=$HOSTNAME.kestrel.{{.Release.Namespace}}.svc.cluster.local:{{.Values.rpcPort}}
           initialDelaySeconds: 10
         livenessProbe:
           exec:
@@ -71,11 +71,11 @@ spec:
             - /bin/sh
             - -c
             - |-
-              /bin/grpc_health_probe -addr=$HOSTNAME.proglog.{{.Release.Namespace}}.svc.cluster.local:{{.Values.rpcPort}}
+              /bin/grpc_health_probe -addr=$HOSTNAME.kestrel.{{.Release.Namespace}}.svc.cluster.local:{{.Values.rpcPort}}
           initialDelaySeconds: 10
         volumeMounts:
         - name: datadir
-          mountPath: /var/run/proglog
+          mountPath: /var/run/kestrel
   volumeClaimTemplates:
   - metadata:
       name: datadir

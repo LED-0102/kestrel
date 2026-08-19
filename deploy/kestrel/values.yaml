@@ -1,6 +1,6 @@
-# Default values for proglog.
+# Default values for kestrel.
 image:
-  repository: github.com/cr34t1ve/proglog
+  repository: github.com/LED-0102/kestrel
   tag: 0.0.1
   pullPolicy: IfNotPresent
 serfPort: 8401

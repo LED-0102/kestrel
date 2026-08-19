@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/cr34t1ve/proglog/internal/server"
+	"github.com/LED-0102/kestrel/internal/server"
 )
 
 func main() {

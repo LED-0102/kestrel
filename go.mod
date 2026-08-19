@@ -1,4 +1,4 @@
-module github.com/cr34t1ve/proglog
+module github.com/LED-0102/kestrel
 
 go 1.22.0
 

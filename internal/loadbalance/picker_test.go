@@ -3,7 +3,7 @@ package loadbalance_test
 import (
 	"testing"
 
-	"github.com/cr34t1ve/proglog/internal/loadbalance"
+	"github.com/LED-0102/kestrel/internal/loadbalance"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/balancer"

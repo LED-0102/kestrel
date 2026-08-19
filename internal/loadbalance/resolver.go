@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc/resolver"
 	"google.golang.org/grpc/serviceconfig"
 
-	api "github.com/cr34t1ve/proglog/api/v1"
+	api "github.com/LED-0102/kestrel/api/v1"
 )
 
 type Resolver struct {
@@ -53,7 +53,7 @@ func (r *Resolver) Build(
 	return r, nil
 }
 
-const Name = "proglog"
+const Name = "kestrel"
 
 func (r *Resolver) Scheme() string {
 	return Name
