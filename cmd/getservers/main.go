@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 
-	api "github.com/cr34t1ve/proglog/api/v1"
+	api "github.com/LED-0102/kestrel/api/v1"
 	"google.golang.org/grpc"
 )
 

@@ -1,10 +1,10 @@
-# ProgLog - Distributed Commit Log
+# Kestrel - Distributed Commit Log
 
-A high-performance, distributed commit log system built in Go, inspired by Apache Kafka. ProgLog provides a scalable, fault-tolerant platform for building distributed systems that require ordered, replicated log storage with strong consistency guarantees.
+A high-performance, distributed commit log system built in Go, inspired by Apache Kafka. Kestrel provides a scalable, fault-tolerant platform for building distributed systems that require ordered, replicated log storage with strong consistency guarantees.
 
 ## 🎯 Project Concept
 
-ProgLog implements a distributed commit log - an ordered, append-only sequence of records that serves as the source of truth for distributed systems. Think of it as a distributed database transaction log that multiple services can read from and write to, ensuring all participants see the same sequence of events in the same order.
+Kestrel implements a distributed commit log - an ordered, append-only sequence of records that serves as the source of truth for distributed systems. Think of it as a distributed database transaction log that multiple services can read from and write to, ensuring all participants see the same sequence of events in the same order.
 
 ### Key Concepts
 
@@ -77,8 +77,8 @@ go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
 #### 1. Clone and Build
 ```bash
-git clone https://github.com/cr34t1ve/proglog.git
-cd proglog
+git clone https://github.com/LED-0102/kestrel.git
+cd kestrel
 
 # Install dependencies
 go mod download
@@ -96,14 +96,14 @@ make test
 #### 2. Start a Single Node (Development)
 ```bash
 # Bootstrap the first node
-go run cmd/proglog/main.go \
+go run cmd/kestrel/main.go \
   --bootstrap \
-  --data-dir=/tmp/proglog-node1 \
+  --data-dir=/tmp/kestrel-node1 \
   --bind-addr=127.0.0.1:8401 \
   --rpc-port=8400 \
-  --server-tls-cert-file=$HOME/.proglog/server.pem \
-  --server-tls-key-file=$HOME/.proglog/server-key.pem \
-  --server-tls-ca-file=$HOME/.proglog/ca.pem \
+  --server-tls-cert-file=$HOME/.kestrel/server.pem \
+  --server-tls-key-file=$HOME/.kestrel/server-key.pem \
+  --server-tls-ca-file=$HOME/.kestrel/ca.pem \
   --acl-model-file=test/model.conf \
   --acl-policy-file=test/policy.csv
 ```
@@ -111,26 +111,26 @@ go run cmd/proglog/main.go \
 #### 3. Start Additional Nodes
 ```bash
 # Node 2
-go run cmd/proglog/main.go \
-  --data-dir=/tmp/proglog-node2 \
+go run cmd/kestrel/main.go \
+  --data-dir=/tmp/kestrel-node2 \
   --bind-addr=127.0.0.1:8402 \
   --rpc-port=8401 \
   --start-join-addrs=127.0.0.1:8401 \
-  --server-tls-cert-file=$HOME/.proglog/server.pem \
-  --server-tls-key-file=$HOME/.proglog/server-key.pem \
-  --server-tls-ca-file=$HOME/.proglog/ca.pem \
+  --server-tls-cert-file=$HOME/.kestrel/server.pem \
+  --server-tls-key-file=$HOME/.kestrel/server-key.pem \
+  --server-tls-ca-file=$HOME/.kestrel/ca.pem \
   --acl-model-file=test/model.conf \
   --acl-policy-file=test/policy.csv
 
 # Node 3
-go run cmd/proglog/main.go \
-  --data-dir=/tmp/proglog-node3 \
+go run cmd/kestrel/main.go \
+  --data-dir=/tmp/kestrel-node3 \
   --bind-addr=127.0.0.1:8403 \
   --rpc-port=8402 \
   --start-join-addrs=127.0.0.1:8401 \
-  --server-tls-cert-file=$HOME/.proglog/server.pem \
-  --server-tls-key-file=$HOME/.proglog/server-key.pem \
-  --server-tls-ca-file=$HOME/.proglog/ca.pem \
+  --server-tls-cert-file=$HOME/.kestrel/server.pem \
+  --server-tls-key-file=$HOME/.kestrel/server-key.pem \
+  --server-tls-ca-file=$HOME/.kestrel/ca.pem \
   --acl-model-file=test/model.conf \
   --acl-policy-file=test/policy.csv
 ```
@@ -142,20 +142,20 @@ make build-docker TAG=v1.0.0
 
 # Run with Docker
 docker run -p 8400:8400 -p 8401:8401 \
-  -v $HOME/.proglog:/etc/proglog \
-  github.com/cr34t1ve/proglog:v1.0.0 \
+  -v $HOME/.kestrel:/etc/kestrel \
+  github.com/LED-0102/kestrel:v1.0.0 \
   --bootstrap \
-  --server-tls-cert-file=/etc/proglog/server.pem \
-  --server-tls-key-file=/etc/proglog/server-key.pem \
-  --server-tls-ca-file=/etc/proglog/ca.pem \
-  --acl-model-file=/etc/proglog/model.conf \
-  --acl-policy-file=/etc/proglog/policy.csv
+  --server-tls-cert-file=/etc/kestrel/server.pem \
+  --server-tls-key-file=/etc/kestrel/server-key.pem \
+  --server-tls-ca-file=/etc/kestrel/ca.pem \
+  --acl-model-file=/etc/kestrel/model.conf \
+  --acl-policy-file=/etc/kestrel/policy.csv
 ```
 
 ### Kubernetes Deployment
 ```bash
 # Install using Helm
-helm install proglog deploy/proglog/ \
+helm install kestrel deploy/kestrel/ \
   --set replicas=3 \
   --set storage=10Gi
 ```

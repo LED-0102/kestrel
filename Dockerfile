@@ -1,7 +1,7 @@
 FROM golang:1.22.0-alpine AS build
-WORKDIR /go/src/proglog
+WORKDIR /go/src/kestrel
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o /go/bin/proglog ./cmd/proglog
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o /go/bin/kestrel ./cmd/kestrel
 # Set environment variable
 ENV GRPC_HEALTH_PROBE_VERSION=v0.3.2
 
@@ -12,6 +12,6 @@ RUN wget -qO /go/bin/grpc_health_probe \
 
 FROM alpine
 RUN apk update && apk add --no-cache curl
-COPY --from=build /go/bin/proglog /bin/proglog
+COPY --from=build /go/bin/kestrel /bin/kestrel
 COPY --from=build /go/bin/grpc_health_probe /bin/grpc_health_probe
-ENTRYPOINT [ "/bin/proglog" ]
+ENTRYPOINT [ "/bin/kestrel" ]
